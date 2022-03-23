@@ -1,0 +1,32 @@
+stages:
+  # FIXME not working example, in and out needs to be decided/fixed
+  tracmass:
+    vars:
+      - container:
+          out: /mnt/out
+          obs: /mnt/in/
+      - project: AVISO
+      - case: allsat
+      - ../../params.yaml
+    cmd:
+      mkdir -p ../../${data.tracmass_csv}/${project}-${case} &&
+      singularity run --no-home --cleanenv --containallw
+        --bind $(realpath $(dvc root)/../..)/${data.tracmass_csv}:${container.out}:rw
+        --bind $(realpath $(dvc root)/../..)/${data.allsat}:${container.obs}:ro
+        --bind $(realpath $(dvc root))/namelist.in:/namelist/namelist.in:ro
+        --bind $(realpath $(dvc root))/project:/project:ro
+      ../../src/tracmass-${tracmass_version}.sif
+        --project=/project
+        --case=CASE
+        --namelist=/namelist/namelist.in
+    deps:
+      - ../../${data.allsat}
+      - ../../src/tracmass-${tracmass_version}.sif
+      - namelist.in
+      - project/${project}
+    outs:
+      - ../../${data.tracmass_csv}/${project}-${case}/TRACMASS_err.csv
+      - ../../${data.tracmass_csv}/${project}-${case}/TRACMASS_ini.csv
+      - ../../${data.tracmass_csv}/${project}-${case}/TRACMASS_out.csv
+      - ../../${data.tracmass_csv}/${project}-${case}/TRACMASS_rerun.csv
+      - ../../${data.tracmass_csv}/${project}-${case}/TRACMASS_run.csv
